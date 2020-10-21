@@ -416,15 +416,16 @@ uint16_t ATTClass::connectionHandle(uint8_t addressType, const uint8_t address[6
   return 0xffff;
 }
 
-uint16_t ATTClass::connectionHandle(uint8_t connIndex) const
+uint16_t ATTClass::centralConnectionHandle()
 {
-  if(connIndex<ATT_MAX_PEERS) {
-    return _peers[connIndex].connectionHandle;
-  }
-  else
-    {
-      return 0xffff;
+  for (int i = 0; i < ATT_MAX_PEERS; i++) {
+    // Search for first peer that has meaningful handle or role - that's your central BLEDevice
+    if (_peers[i].connectionHandle == 0xffff || _peers[i].role != 0x01) {
+      continue;
     }
+    return _peers[i].connectionHandle;
+  }
+  return 0xffff;
       
 }
 
@@ -592,9 +593,9 @@ bool ATTClass::handleInd(uint16_t handle, const uint8_t* value, int length)
   return (numIndications > 0);
 }
 
-void ATTClass::requestMTU(uint16_t connIndex,uint16_t requestedMTU)
+void ATTClass::requestMTU(uint16_t connectionHandle,uint16_t requestedMTU)
 {
-  if (connIndex >= ATT_MAX_PEERS) { 
+  if (connectionHandle == 0xffff) { 
     return; 
   }
 
@@ -604,21 +605,18 @@ void ATTClass::requestMTU(uint16_t connIndex,uint16_t requestedMTU)
     mtu = _maxMtu;
   }
 
-  if (_peers[connIndex].connectionHandle != 0xffff) {
-    _peers[connIndex].mtu = mtu;
+  for(int i=0;i<ATT_MAX_PEERS;i++) {
+    if (_peers[i].connectionHandle == connectionHandle) {
+      _peers[i].mtu = mtu;
+    }
   }
-  else
-  {
-    return;
-  }
-  
-
+ 
   struct __attribute__ ((packed)) {
     uint8_t op;
     uint16_t mtu;
   } mtuResp = { ATT_OP_MTU_RESP, mtu };
 
-  HCI.sendAclPkt(_peers[connIndex].connectionHandle, ATT_CID, sizeof(mtuResp), &mtuResp);
+  HCI.sendAclPkt(connectionHandle, ATT_CID, sizeof(mtuResp), &mtuResp);
 
 }
 

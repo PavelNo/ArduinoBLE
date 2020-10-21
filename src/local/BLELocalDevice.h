@@ -64,6 +64,11 @@ public:
   BLEDevice central();
   BLEDevice available();
 
+  // Call to obtain the size of MTU for the central BLEDevice
+  uint16_t getMTU();
+  // Requests MTU of connection with central BLEDevice to be changed to requestedMTU 
+  void requestMTU(uint16_t requestedMTU);
+
   void setEventHandler(BLEDeviceEvent event, BLEDeviceEventHandler eventHandler);
 
   void setAdvertisingInterval(uint16_t advertisingInterval);
