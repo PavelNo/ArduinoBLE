@@ -58,6 +58,7 @@ public:
   void removeConnection(uint16_t handle, uint8_t reason);
 
   uint16_t connectionHandle(uint8_t addressType, const uint8_t address[6]) const;
+  uint16_t connectionHandle(uint8_t connIndex) const;
   BLERemoteDevice* device(uint8_t addressType, const uint8_t address[6]) const;
   bool connected() const;
   bool connected(uint8_t addressType, const uint8_t address[6]) const;
@@ -76,6 +77,7 @@ public:
   int readReq(uint16_t connectionHandle, uint16_t handle, uint8_t responseBuffer[]);
   int writeReq(uint16_t connectionHandle, uint16_t handle, const uint8_t* data, uint8_t dataLen, uint8_t responseBuffer[]);
   void writeCmd(uint16_t connectionHandle, uint16_t handle, const uint8_t* data, uint8_t dataLen);
+  void requestMTU(uint16_t connIndex,uint16_t requestedMTU);
 
 private:
   void error(uint16_t connectionHandle, uint8_t dlen, uint8_t data[]);

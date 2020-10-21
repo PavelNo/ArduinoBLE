@@ -82,7 +82,7 @@
 #define ATT_ECODE_INSUFF_RESOURCES     0x11
 
 ATTClass::ATTClass() :
-  _maxMtu(23),
+  _maxMtu(512),
   _timeout(5000),
   _longWriteHandle(0x0000),
   _longWriteValue(NULL),
@@ -416,6 +416,18 @@ uint16_t ATTClass::connectionHandle(uint8_t addressType, const uint8_t address[6
   return 0xffff;
 }
 
+uint16_t ATTClass::connectionHandle(uint8_t connIndex) const
+{
+  if(connIndex<ATT_MAX_PEERS) {
+    return _peers[connIndex].connectionHandle;
+  }
+  else
+    {
+      return 0xffff;
+    }
+      
+}
+
 BLERemoteDevice* ATTClass::device(uint8_t addressType, const uint8_t address[6]) const
 {
   for (int i = 0; i < ATT_MAX_PEERS; i++) {
@@ -578,6 +590,36 @@ bool ATTClass::handleInd(uint16_t handle, const uint8_t* value, int length)
   }
 
   return (numIndications > 0);
+}
+
+void ATTClass::requestMTU(uint16_t connIndex,uint16_t requestedMTU)
+{
+  if (connIndex >= ATT_MAX_PEERS) { 
+    return; 
+  }
+
+  uint16_t mtu = requestedMTU;
+
+  if (mtu > _maxMtu) {
+    mtu = _maxMtu;
+  }
+
+  if (_peers[connIndex].connectionHandle != 0xffff) {
+    _peers[connIndex].mtu = mtu;
+  }
+  else
+  {
+    return;
+  }
+  
+
+  struct __attribute__ ((packed)) {
+    uint8_t op;
+    uint16_t mtu;
+  } mtuResp = { ATT_OP_MTU_RESP, mtu };
+
+  HCI.sendAclPkt(_peers[connIndex].connectionHandle, ATT_CID, sizeof(mtuResp), &mtuResp);
+
 }
 
 void ATTClass::error(uint16_t connectionHandle, uint8_t dlen, uint8_t data[])
