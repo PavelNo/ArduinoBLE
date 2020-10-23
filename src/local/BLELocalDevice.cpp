@@ -283,6 +283,21 @@ void BLELocalDevice::requestMTU(uint16_t requestedMTU)
   }
 }
 
+int BLELocalDevice::readPHY()
+{
+  uint8_t txPhy;
+  uint8_t rxPhy;
+  uint16_t centralHandle = ATT.centralConnectionHandle();
+  if(centralHandle!=0xffff){
+    return HCI.readLePHY(centralHandle,txPhy,rxPhy);
+  }
+  else
+  {
+    return 1;
+  }
+  
+}
+
 BLEDevice BLELocalDevice::available()
 {
   HCI.poll();

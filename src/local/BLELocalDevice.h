@@ -68,6 +68,8 @@ public:
   uint16_t getMTU();
   // Requests MTU of connection with central BLEDevice to be changed to requestedMTU 
   void requestMTU(uint16_t requestedMTU);
+  // Read LE PHY for connection to central BLE Device
+  int readPHY();
 
   void setEventHandler(BLEDeviceEvent event, BLEDeviceEventHandler eventHandler);
 

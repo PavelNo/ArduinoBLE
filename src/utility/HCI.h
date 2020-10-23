@@ -63,6 +63,8 @@ public:
                   uint16_t latency, uint16_t supervisionTimeout);
   int leCancelConn();
 
+  // Obtain current settings for tx and rx PHY. 1 = LE 1M, 2 = LE 2M, 3 = LE Coded
+  int readLePHY(uint16_t connHandle, uint8_t& txPHY, uint8_t& rxPHY);
 
   int sendAclPkt(uint16_t handle, uint8_t cid, uint8_t plen, void* data);
 

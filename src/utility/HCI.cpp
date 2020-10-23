@@ -69,6 +69,8 @@
 #define OCF_LE_CREATE_CONN                0x000d
 #define OCF_LE_CANCEL_CONN                0x000e
 #define OCF_LE_CONN_UPDATE                0x0013
+#define OCF_LE_READ_MAXIMUM_DATA_LENGTH   0x002F
+#define OCF_LE_READ_PHY                   0x0030
 
 #define HCI_OE_USER_ENDED_CONNECTION 0x13
 
@@ -245,6 +247,39 @@ int HCIClass::readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt)
 #endif
   }
 
+  if (_debug) {
+    _debug->print("LE buffer size pktLen:");
+    _debug->println(pktLen);
+    _debug->print("LE buffer size maxPkt:");
+    _debug->println(_maxPkt);
+  }
+
+  return result;
+}
+
+int HCIClass::readLePHY(uint16_t connHandle, uint8_t& txPHY, uint8_t& rxPHY)
+{
+  int result = sendCommand(OGF_LE_CTL << 10 | OCF_LE_READ_PHY,sizeof(connHandle),&connHandle);
+
+  if (result == 0) {
+    struct __attribute__ ((packed)) HCILePHYReturnStructure {
+      uint16_t connHandle;
+      uint8_t tx_PHY;
+      uint8_t rx_PHY;
+    } *lePhy = (HCILePHYReturnStructure*)_cmdResponse;
+
+    txPHY = lePhy->tx_PHY;
+    rxPHY = lePhy->rx_PHY;
+
+    if (_debug) {
+      _debug->print("TX  Phy:");
+      _debug->println(txPHY);
+      _debug->print("RX Phy:");
+      _debug->println(rxPHY);
+    }
+  } else if (_debug) {
+      _debug->println("readLePhy failed");
+    }
   return result;
 }
 
