@@ -189,6 +189,26 @@ int HCIClass::readLocalVersion(uint8_t& hciVer, uint16_t& hciRev, uint8_t& lmpVe
     lmpVer = localVersion->lmpVer;
     manufacturer = localVersion->manufacturer;
     lmpSubVer = localVersion->lmpSubVer;
+    if(_debug)
+    {
+      _debug->print("HCI version:");
+      switch(hciVer)
+      {
+        case 0:_debug->println("Bluetooth Core Specs 1.0");break;
+        case 1:_debug->println("Bluetooth Core Specs 1.1");break;
+        case 2:_debug->println("Bluetooth Core Specs 1.2");break;
+        case 3:_debug->println("Bluetooth Core Specs 2.0");break;
+        case 4:_debug->println("Bluetooth Core Specs 2.1+");break;
+        case 5:_debug->println("Bluetooth Core Specs 3.0");break;
+        case 6:_debug->println("Bluetooth Core Specs 4.0");break;
+        case 7:_debug->println("Bluetooth Core Specs 4.1");break;
+        case 8:_debug->println("Bluetooth Core Specs 4.2");break;
+        case 9:_debug->println("Bluetooth Core Specs 5.0");break;
+        case 10:_debug->println("Bluetooth Core Specs 5.1");break;
+        case 11:_debug->println("Bluetooth Core Specs 5.2");break;
+        default: _debug->println("Unknown");
+      }
+    }
   }
 
   return result;
