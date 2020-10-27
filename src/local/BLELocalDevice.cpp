@@ -116,6 +116,9 @@ int BLELocalDevice::begin()
     return 0;
   }
 
+  uint8_t supportedFeatures[8];
+  HCI.readLocalFeatures(supportedFeatures);
+
   GATT.begin();
 
   return 1;

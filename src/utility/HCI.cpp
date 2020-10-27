@@ -53,6 +53,7 @@
 // OGF_INFO_PARAM
 #define OCF_READ_LOCAL_VERSION 0x0001
 #define OCF_READ_BD_ADDR       0x0009
+#define OCF_READ_LOCAL_FEATURES 0x0003
 
 // OGF_STATUS_PARAM
 #define OCF_READ_RSSI          0x0005
@@ -242,6 +243,33 @@ int HCIClass::readRssi(uint16_t handle)
   }
 
   return rssi;
+}
+
+int HCIClass::readLocalFeatures(uint8_t featureBitMask[8])
+{
+  int result = sendCommand(OGF_INFO_PARAM << 10 | OCF_READ_LOCAL_FEATURES);
+
+  if (result == 0) {
+    // Response is 64-bit long bit mask with each representing particular feature availability
+    memcpy(featureBitMask,_cmdResponse,8);
+    if(_debug)
+    {
+      _debug->println("Suported features mask:");
+      _debug->println(featureBitMask[0],BIN);
+      _debug->println(featureBitMask[1],BIN);
+      _debug->println(featureBitMask[2],BIN);
+      _debug->println(featureBitMask[3],BIN);
+      _debug->println(featureBitMask[4],BIN);
+      _debug->println(featureBitMask[5],BIN);
+      _debug->println(featureBitMask[6],BIN);
+      _debug->println(featureBitMask[7],BIN);
+    }
+  } else
+  if(_debug)
+    {
+      _debug->print("Reading local upported features failed");
+    }
+  return result;
 }
 
 int HCIClass::setEventMask(uint64_t eventMask)

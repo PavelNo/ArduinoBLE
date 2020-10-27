@@ -40,6 +40,8 @@ public:
 
   int readRssi(uint16_t handle);
 
+  int readLocalFeatures(uint8_t featureBitMask[8]);
+
   int setEventMask(uint64_t eventMask);
 
   int readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt);
