@@ -119,6 +119,9 @@ int BLELocalDevice::begin()
   uint8_t supportedFeatures[8];
   HCI.readLocalFeatures(supportedFeatures);
 
+  uint8_t locAddr[6];
+  HCI.readWICEDLocalAddress(locAddr);
+
   GATT.begin();
 
   return 1;

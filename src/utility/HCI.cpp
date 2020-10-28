@@ -28,6 +28,15 @@
 #define HCI_ACLDATA_PKT 0x02
 #define HCI_EVENT_PKT   0x04
 
+// Wiced HCI Protocol Packet
+#define HCI_WICED_PKT   0x19
+
+// Wiced HCI Control Group Codes
+#define HCI_WICED_CONTROL_GROUP_DEVICE  0x00
+
+// WICED HCI Operation Code
+#define HCI_WICED_OPERATION_READ_LOCAL_ADDRESS  0x0F 
+
 #define EVT_DISCONN_COMPLETE 0x05
 #define EVT_CMD_COMPLETE     0xe
 #define EVT_CMD_STATUS       0x0f
@@ -224,6 +233,16 @@ int HCIClass::readBdAddr(uint8_t addr[6])
   }
 
   return result;
+}
+
+int HCIClass::readWICEDLocalAddress(uint8_t addr[6])
+{
+  if(_debug)
+  {
+    _debug->println("Testing WICED HCI command");
+  }
+  int result = sendWICEDCommand(HCI_WICED_OPERATION_READ_LOCAL_ADDRESS,HCI_WICED_CONTROL_GROUP_DEVICE);
+  return result;  
 }
 
 int HCIClass::readRssi(uint16_t handle)
@@ -558,6 +577,35 @@ int HCIClass::sendCommand(uint16_t opcode, uint8_t plen, void* parameters)
 
   if (_debug) {
     dumpPkt("HCI COMMAND TX -> ", sizeof(pktHdr) + plen, txBuffer);
+  }
+
+  HCITransport.write(txBuffer, sizeof(pktHdr) + plen);
+
+  _cmdCompleteOpcode = 0xffff;
+  _cmdCompleteStatus = -1;
+
+  for (unsigned long start = millis(); _cmdCompleteOpcode != opcode && millis() < (start + 1000);) {
+    poll();
+  }
+
+  return _cmdCompleteStatus;
+}
+
+int HCIClass::sendWICEDCommand(uint8_t opcode, uint8_t groupcode, uint16_t plen, void* parameters)
+{
+  struct __attribute__ ((packed)) {
+    uint8_t pktType;
+    uint8_t opcode;
+    uint8_t groupcode;
+    uint16_t plen;
+  } pktHdr = {HCI_WICED_PKT, opcode, groupcode, plen};
+
+  uint8_t txBuffer[sizeof(pktHdr) + plen];
+  memcpy(txBuffer, &pktHdr, sizeof(pktHdr));
+  memcpy(&txBuffer[sizeof(pktHdr)], parameters, plen);
+
+  if (_debug) {
+    dumpPkt("WICED HCI COMMAND TX -> ", sizeof(pktHdr) + plen, txBuffer);
   }
 
   HCITransport.write(txBuffer, sizeof(pktHdr) + plen);

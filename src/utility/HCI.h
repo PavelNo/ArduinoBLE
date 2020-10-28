@@ -42,6 +42,8 @@ public:
 
   int readLocalFeatures(uint8_t featureBitMask[8]);
 
+  int readWICEDLocalAddress(uint8_t addr[6]);
+
   int setEventMask(uint64_t eventMask);
 
   int readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt);
@@ -77,6 +79,7 @@ public:
 
 private:
   int sendCommand(uint16_t opcode, uint8_t plen = 0, void* parameters = NULL);
+  int sendWICEDCommand(uint8_t opcode, uint8_t groupcode, uint16_t plen = 0, void* parameters = NULL);
 
   void handleAclDataPkt(uint8_t plen, uint8_t pdata[]);
   void handleNumCompPkts(uint16_t handle, uint16_t numPkts);
