@@ -17,13 +17,28 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _ARDUINO_BLE_H_
-#define _ARDUINO_BLE_H_
+#ifndef _BTCLASSIC_LOCAL_DEVICE_H_
+#define _BTCLASSIC_LOCAL_DEVICE_H_
 
-#include "local/BLELocalDevice.h"
-#include "local/BTClassicLocalDevice.h"
-#include "BLEProperty.h"
-#include "BLEStringCharacteristic.h"
-#include "BLETypedCharacteristics.h"
+
+class BTClassicLocalDevice {
+public:
+  BTClassicLocalDevice();
+  virtual ~BTClassicLocalDevice();
+
+  int begin();
+  void end();
+
+  int setLocalName(char *localName);
+
+  int enableScans(uint8_t scanEnable);
+
+  void debug(Stream& stream);
+  void noDebug();
+
+private:
+};
+
+extern BTClassicLocalDevice BTClassic;
 
 #endif

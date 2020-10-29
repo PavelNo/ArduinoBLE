@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\..\\WICED-Studio-6.6\\43xxx_Wi-Fi\\libraries\\drivers\\bluetooth"
+		}
+	],
+	"settings": {}
+}
