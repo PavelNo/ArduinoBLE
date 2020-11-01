@@ -108,9 +108,14 @@ int BTClassicLocalDevice::begin()
     return 0;
   }
 
-  HCI.writeLocalName("Arduino Classic BT Device");
+  HCI.writeLocalName("PortentaH7");
 
-  HCI.writeScanEnable(0x03); // Enabling all scans
+  uint8_t locAddr[6];
+  HCI.readBdAddr(locAddr);
+
+  HCI.writeInquiryScanActivity(0x0050,0x0012);
+
+  HCI.writeScanEnable(0x01); // Enabling inquiry scan
 
   return 1;
 }

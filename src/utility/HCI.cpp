@@ -51,6 +51,8 @@
 #define OCF_RESET              0x0003
 #define OCF_WRITE_LOCAL_NAME   0x0013
 #define OCF_WRITE_SCAN_ENABLE  0x001A
+#define OCF_WRITE_INQUIRY_SCAN_ACTIVITY 0x001E
+#define OCF_WRITE_PAGE_SCAN_ACTIVITY 0x001C
 
 // OGF_INFO_PARAM
 #define OCF_READ_LOCAL_VERSION 0x0001
@@ -225,11 +227,32 @@ int HCIClass::readLocalVersion(uint8_t& hciVer, uint16_t& hciRev, uint8_t& lmpVe
 
 int HCIClass::readBdAddr(uint8_t addr[6])
 {
+  int i;
   int result = sendCommand(OGF_INFO_PARAM << 10 | OCF_READ_BD_ADDR);
 
   if (result == 0) {
     memcpy(addr, _cmdResponse, 6);
-  }
+    if(_debug)
+    {
+      _debug->print("BD ADDR:");
+      for(i=0;i<6;i++)
+      {
+        _debug->print(addr[5-i],HEX);
+        if(i<5)
+        {
+          _debug->print(":");
+        }
+        else
+          {
+            _debug->println("");
+          }
+          
+      }
+    }
+  } else if(_debug)
+    {
+      _debug->print("Reading BD ADDR failed");
+    }
 
   return result;
 }
@@ -304,15 +327,26 @@ int HCIClass::writeScanEnable(uint8_t scanEnable)
   if (_debug) {
     if(scanEnable>0)
     {
-      _debug->print("Enabling scans");
+      _debug->println("Enabling scans");
     }
     else
     {
-      _debug->print("Disabling scans");
+      _debug->println("Disabling scans");
     }
     
   }
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_SCAN_ENABLE,1,&scanEnable);  
+}
+
+int HCIClass::writeInquiryScanActivity(uint16_t inqrScanInterval,uint16_t inqrScanWindow)
+{
+  uint16_t paramsArray[2];
+  paramsArray[0]=inqrScanInterval;
+  paramsArray[1]=inqrScanWindow;
+  if (_debug) {
+      _debug->println("Settting inquiry scan interval an window");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_INQUIRY_SCAN_ACTIVITY,4,paramsArray);  
 }
 
 int HCIClass::readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt)

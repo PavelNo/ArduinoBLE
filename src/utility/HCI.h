@@ -46,6 +46,7 @@ public:
 
   int writeLocalName(char* localName);
   int writeScanEnable(uint8_t scanEnable);
+  int writeInquiryScanActivity(uint16_t inqrScanInterval,uint16_t inqrScanWindow);
 
   int readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt);
   int leSetRandomAddress(uint8_t addr[6]);
