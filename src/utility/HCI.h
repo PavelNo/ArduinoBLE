@@ -45,8 +45,22 @@ public:
   int setEventMask(uint64_t eventMask);
 
   int writeLocalName(char* localName);
-  int writeScanEnable(uint8_t scanEnable);
+
+  int readClassOfDevice(uint8_t classOfDevice[3]);
+  int writeClassOfDevice(uint8_t classOfDevice[3]);
+
+  // Inquiry scan related commands
+  int writeInqScanType(uint8_t inqrScanType);
   int writeInquiryScanActivity(uint16_t inqrScanInterval,uint16_t inqrScanWindow);
+  int writeScanEnable(uint8_t scanEnable);
+  int writeIAC(uint32_t IAC);
+  int readIAC();
+
+  // Page scan related commands
+  int writePageScanActivity(uint16_t pageScanInterval,uint16_t pageScanWindow);
+
+  
+  
 
   int readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt);
   int leSetRandomAddress(uint8_t addr[6]);

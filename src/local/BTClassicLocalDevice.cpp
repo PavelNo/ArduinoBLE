@@ -113,9 +113,21 @@ int BTClassicLocalDevice::begin()
   uint8_t locAddr[6];
   HCI.readBdAddr(locAddr);
 
-  HCI.writeInquiryScanActivity(0x0050,0x0012);
+  HCI.readIAC();
 
-  HCI.writeScanEnable(0x01); // Enabling inquiry scan
+  uint8_t clsOfDev[3];
+  HCI.readClassOfDevice(clsOfDev);
+  clsOfDev[0] = 0x08;
+  clsOfDev[1] = 0x09;
+  clsOfDev[2] = 0x04;
+  HCI.writeClassOfDevice(clsOfDev);
+
+  HCI.writeInqScanType(0x01); // Set interlaced inquiry scan 
+
+  HCI.writeInquiryScanActivity(0x0800,0x0012);
+  HCI.writePageScanActivity(0x0800,0x0012);
+
+  HCI.writeScanEnable(0x03); // Enabling inquiry & page scan
 
   return 1;
 }

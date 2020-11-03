@@ -53,6 +53,11 @@
 #define OCF_WRITE_SCAN_ENABLE  0x001A
 #define OCF_WRITE_INQUIRY_SCAN_ACTIVITY 0x001E
 #define OCF_WRITE_PAGE_SCAN_ACTIVITY 0x001C
+#define OCF_WRITE_ICA          0x003A
+#define OCF_READ_ICA           0x0039
+#define OCF_READ_CLASS_OF_DEVICE  0x0023
+#define OCF_WRITE_CLASS_OF_DEVICE  0x0024
+#define OCF_WRITE_INQR_SCAN_TYPE  0x0043
 
 // OGF_INFO_PARAM
 #define OCF_READ_LOCAL_VERSION 0x0001
@@ -322,6 +327,35 @@ int HCIClass::writeLocalName(char* localName)
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_LOCAL_NAME,sizeof(nameParameter),nameParameter);
 }
 
+int HCIClass::readClassOfDevice(uint8_t classOfDevice[3])
+{
+  int result = sendCommand(OGF_HOST_CTL << 10 | OCF_READ_CLASS_OF_DEVICE);
+
+  if (result == 0) {
+    // Response is three byte long 
+    memcpy(classOfDevice,_cmdResponse,3);
+    if(_debug)
+    {
+      dumpPkt("Class of device:",3,classOfDevice);
+    }
+  }
+  return result;
+}
+
+int HCIClass::writeClassOfDevice(uint8_t classOfDevice[3])
+{
+
+  if(_debug)
+  {
+    dumpPkt("Setting class of device:",3,classOfDevice);
+  }
+
+  int result = sendCommand(OGF_HOST_CTL << 10 | OCF_WRITE_CLASS_OF_DEVICE,3,classOfDevice);
+  
+  
+  return result;
+}
+
 int HCIClass::writeScanEnable(uint8_t scanEnable)
 {
   if (_debug) {
@@ -347,6 +381,46 @@ int HCIClass::writeInquiryScanActivity(uint16_t inqrScanInterval,uint16_t inqrSc
       _debug->println("Settting inquiry scan interval an window");
   }
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_INQUIRY_SCAN_ACTIVITY,4,paramsArray);  
+}
+
+int HCIClass::writePageScanActivity(uint16_t pageScanInterval,uint16_t pageScanWindow)
+{
+  uint16_t paramsArray[2];
+  paramsArray[0]=pageScanInterval;
+  paramsArray[1]=pageScanWindow;
+  if (_debug) {
+      _debug->println("Settting page scan interval and window");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_PAGE_SCAN_ACTIVITY,4,paramsArray);  
+}
+
+int HCIClass::writeIAC(uint32_t IAC)
+{
+  uint8_t paramsArray[4];
+  paramsArray[0] = 1;
+  paramsArray[1] = IAC & 0x0000FF;
+  paramsArray[2] = (IAC & 0x00FF00)>>8;
+  paramsArray[3] = (IAC & 0xFF0000)>>16;
+  if (_debug) {
+      _debug->println("Writing inquiry access code");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_ICA,4,paramsArray);  
+}
+
+int HCIClass::readIAC()
+{
+  if (_debug) {
+      _debug->println("Reading inquiry access code");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_READ_ICA);  
+}
+
+int HCIClass::writeInqScanType(uint8_t inqrScanType)
+{
+  if (_debug) {
+      _debug->println("Setting inquiry scan type");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_INQR_SCAN_TYPE,1,&inqrScanType);  
 }
 
 int HCIClass::readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt)
