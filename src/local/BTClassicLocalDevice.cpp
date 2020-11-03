@@ -154,9 +154,14 @@ int BTClassicLocalDevice::setLocalName(char *localName)
     return HCI.writeLocalName(localName);
 }
 
-int enableScans(uint8_t scanEnable)
+int BTClassicLocalDevice::enableScans(uint8_t scanEnable)
 {
     return HCI.writeScanEnable(scanEnable);
+}
+
+void BTClassicLocalDevice::poll()
+{
+  HCI.poll(0);
 }
 
 void BTClassicLocalDevice::debug(Stream& stream)

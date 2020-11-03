@@ -44,7 +44,9 @@
 #define OGF_LE_CTL             0x08
 
 // OGF_LINK_CTL
+#define OCF_INQUIRE            0x0001
 #define OCF_DISCONNECT         0x0006
+
 
 // OGF_HOST_CTL
 #define OCF_SET_EVENT_MASK     0x0001
@@ -421,6 +423,24 @@ int HCIClass::writeInqScanType(uint8_t inqrScanType)
       _debug->println("Setting inquiry scan type");
   }
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_INQR_SCAN_TYPE,1,&inqrScanType);  
+}
+
+int HCIClass::startInquiry()
+{
+  uint8_t params[5];
+  // General inquiry access code 0x9E8B33
+  params[0] = 0x33;
+  params[1] = 0x8B;
+  params[2] = 0x9E;
+  // Inquiry Length of about 30 seconds 
+  params[3] = 0x17;
+  // Limit number of responses to 5
+  params[5] = 0x05;
+  if (_debug) {
+      _debug->println("Starting inquiry");
+      
+  }
+  return sendCommand(OGF_LINK_CTL<<10 | OCF_INQUIRE,5,params);
 }
 
 int HCIClass::readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt)

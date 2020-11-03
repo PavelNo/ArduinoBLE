@@ -49,6 +49,9 @@ public:
   int readClassOfDevice(uint8_t classOfDevice[3]);
   int writeClassOfDevice(uint8_t classOfDevice[3]);
 
+  // Inquiry related commands
+  int startInquiry();
+
   // Inquiry scan related commands
   int writeInqScanType(uint8_t inqrScanType);
   int writeInquiryScanActivity(uint16_t inqrScanInterval,uint16_t inqrScanWindow);

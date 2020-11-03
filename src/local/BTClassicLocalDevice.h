@@ -33,6 +33,8 @@ public:
 
   int enableScans(uint8_t scanEnable);
 
+  void poll();
+
   void debug(Stream& stream);
   void noDebug();
 
