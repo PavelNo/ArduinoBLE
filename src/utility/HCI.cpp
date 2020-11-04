@@ -28,10 +28,14 @@
 #define HCI_ACLDATA_PKT 0x02
 #define HCI_EVENT_PKT   0x04
 
+
+// HCI Event codes
+#define EVT_CONN_REQUEST    0x04
 #define EVT_DISCONN_COMPLETE 0x05
 #define EVT_CMD_COMPLETE     0xe
 #define EVT_CMD_STATUS       0x0f
 #define EVT_NUM_COMP_PKTS    0x13
+#define EVT_PIN_CODE_REQ      0x16
 #define EVT_LE_META_EVENT    0x3e
 
 #define EVT_LE_CONN_COMPLETE      0x01
@@ -45,6 +49,8 @@
 
 // OGF_LINK_CTL
 #define OCF_INQUIRE            0x0001
+#define OCF_ACCEPT_CONN_REQ    0x0009
+#define OCF_PIN_REQ_REPLY       0x000D
 #define OCF_DISCONNECT         0x0006
 
 
@@ -924,7 +930,70 @@ void HCIClass::handleEventPkt(uint8_t /*plen*/, uint8_t pdata[])
 
       }
     }
+  } else if (eventHdr->evt == EVT_CONN_REQUEST) // Incoming connection request Bluetooth Classic
+  {
+    struct __attribute__ ((packed)) ConnReqst {
+      uint8_t bdAddr[6];
+      uint8_t classOfDevice[3];
+      uint8_t linkType;
+    } *connReqHeader = (ConnReqst*)&pdata[sizeof(HCIEventHdr)]; 
+
+    // Accept connection 
+    if(_debug)
+    {
+      _debug->print("Incomming connection request from :");
+      for(int i=0;i<6;i++)
+      {
+        _debug->print(connReqHeader->bdAddr[5-i],HEX);
+        if(i<5)
+        {
+          _debug->print(":");
+        }
+        else
+        {
+          _debug->println("");
+        }      
+      }
+    }
+    // Accept connection
+    uint8_t params[7];
+    memcpy(params,connReqHeader->bdAddr,6); // BD ADDR of device from which the connection is to be accepted
+    params[6] = 0x01; // Remain as slave for this connection
+    int result = sendCommand(OGF_LINK_CTL<<10 | OCF_ACCEPT_CONN_REQ,7,params);
+
+  } else if (eventHdr->evt == EVT_PIN_CODE_REQ)
+  {
+    struct __attribute__ ((packed)) PINReqst {
+      uint8_t bdAddr[6];
+    } *pinReqHeader = (PINReqst*)&pdata[sizeof(HCIEventHdr)]; 
+
+    if(_debug)
+    {
+      _debug->print("Incomming PIN request from :");
+      for(int i=0;i<6;i++)
+      {
+        _debug->print(pinReqHeader->bdAddr[5-i],HEX);
+        if(i<5)
+        {
+          _debug->print(":");
+        }
+        else
+        {
+          _debug->println("");
+        }      
+      }
+    }
+
+    // Reply to PIN code request
+    uint8_t pinREparams[23];
+    memset(pinREparams,'0',23);
+    memcpy(pinREparams,pinReqHeader->bdAddr,6); // BD ADDR of device from which the PIN request came
+    pinREparams[6] = 0x04; // 4 digit PIN (0000)
+    //pinREparams[7] = 0x00;pinREparams[8] = 0x00;pinREparams[9] = 0x00;pinREparams[10] = 0x00;
+    int result = sendCommand(OGF_LINK_CTL<<10 | OCF_PIN_REQ_REPLY,23,pinREparams);
+
   }
+  
 }
 
 void HCIClass::dumpPkt(const char* prefix, uint8_t plen, uint8_t pdata[])
