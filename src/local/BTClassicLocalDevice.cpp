@@ -108,7 +108,8 @@ int BTClassicLocalDevice::begin()
     return 0;
   }
 
-  HCI.writeLocalName("PortentaH7");
+  char localName[20] = "NanoSensePod M1";
+  HCI.writeLocalName(localName);
 
   uint8_t locAddr[6];
   HCI.readBdAddr(locAddr);
@@ -126,6 +127,19 @@ int BTClassicLocalDevice::begin()
 
   HCI.writeInquiryScanActivity(0x0800,0x0012);
   HCI.writePageScanActivity(0x0800,0x0012);
+
+  uint8_t eirdata[240];
+  uint16_t tmp16bitUUID;
+  
+  // Setup Extended Inquiry Response
+  GAP.setupEIRData(eirdata);
+  GAP.addEIRDataStructure(0x09,strlen(localName),(uint8_t*) localName); // Complete local name
+  tmp16bitUUID = 0x1101; // Serial Port service class and profile
+  GAP.addEIRDataStructure(0x03,2,(uint8_t*)(&tmp16bitUUID));
+  // Manufacturer specific data  
+  tmp16bitUUID = 0x0131; // Use 0x0131 for Cypress Semiconductor for now, ask for your own company UUID later
+  GAP.addEIRDataStructure(0xFF,2,(uint8_t*)(&tmp16bitUUID));
+  GAP.writeEIR(); 
 
   HCI.writeScanEnable(0x03); // Enabling inquiry & page scan
 

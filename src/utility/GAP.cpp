@@ -348,4 +348,35 @@ bool GAPClass::matchesScanFilter(const BLEDevice& device)
   return true;
 }
 
+void GAPClass::setupEIRData(uint8_t EIRArray[240])
+{
+  _EIRWholeData = EIRArray;
+  _EIRWholeDataIndex = 0;
+  memset(_EIRWholeData,0,240); // Clear the array
+}
+
+int GAPClass::addEIRDataStructure(uint8_t EIRDataType, uint8_t EIRDataLen, uint8_t EIRData[])
+{
+  if((_EIRWholeDataIndex+2+EIRDataLen)<240)
+  {
+    _EIRWholeData[_EIRWholeDataIndex] = EIRDataLen+1;
+    _EIRWholeDataIndex++;
+    _EIRWholeData[_EIRWholeDataIndex] = EIRDataType;
+    _EIRWholeDataIndex++;
+    memcpy(&_EIRWholeData[_EIRWholeDataIndex],EIRData,EIRDataLen);
+    _EIRWholeDataIndex += EIRDataLen;
+    return 0;
+  } 
+  else
+  {
+    return 1;
+  }
+  
+}
+
+int GAPClass::writeEIR()
+{
+  return HCI.writeEIR(_EIRWholeData);
+}
+
 GAPClass GAP;

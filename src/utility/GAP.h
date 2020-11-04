@@ -50,6 +50,19 @@ public:
 
   void setEventHandler(BLEDeviceEvent event, BLEDeviceEventHandler eventHandler);
 
+  // Bluetooth classic related functions
+
+  // Setup EIR data block
+  // EIRArray is the 240 byte long array that is to contain the whole EIR data
+  void setupEIRData(uint8_t EIRArray[240]);
+
+  // Function for assembling the Extended Inquiry Response
+  // EIRDataType is 8-bit ID characterising the EIRData to be added - see assigned numbers in Bluetooth specs
+  // EIRDataLen is the lenght of the EIRData array which contains the actual data
+  int addEIRDataStructure(uint8_t EIRDataType, uint8_t EIRDataLen, uint8_t EIRData[]);
+
+  int writeEIR();
+
 protected:
   friend class BLELocalCharacteristic;
 
@@ -85,6 +98,10 @@ private:
   String _scanNameFilter;
   String _scanUuidFilter;
   String _scanAddressFilter;
+
+  // Classic Bluetooth related variables
+  uint8_t* _EIRWholeData; // Pointer to the 240-byte long array holding the whole EIR data
+  uint8_t _EIRWholeDataIndex; // Index pointing to next empty _EIRWholeData array element
 };
 
 extern GAPClass GAP;

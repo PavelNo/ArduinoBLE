@@ -58,6 +58,7 @@ public:
   int writeScanEnable(uint8_t scanEnable);
   int writeIAC(uint32_t IAC);
   int readIAC();
+  int writeEIR(uint8_t eirArray[240]);
 
   // Page scan related commands
   int writePageScanActivity(uint16_t pageScanInterval,uint16_t pageScanWindow);

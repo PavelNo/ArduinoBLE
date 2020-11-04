@@ -60,6 +60,7 @@
 #define OCF_READ_CLASS_OF_DEVICE  0x0023
 #define OCF_WRITE_CLASS_OF_DEVICE  0x0024
 #define OCF_WRITE_INQR_SCAN_TYPE  0x0043
+#define OCF_WRITE_EIR           0x0052
 
 // OGF_INFO_PARAM
 #define OCF_READ_LOCAL_VERSION 0x0001
@@ -423,6 +424,17 @@ int HCIClass::writeInqScanType(uint8_t inqrScanType)
       _debug->println("Setting inquiry scan type");
   }
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_INQR_SCAN_TYPE,1,&inqrScanType);  
+}
+
+int HCIClass::writeEIR(uint8_t eirArray[240])
+{
+  uint8_t params[241];
+  params[0] = 0; // FEC not required
+  memcpy(&params[1],eirArray,240);
+  if (_debug) {
+      _debug->println("Setting inquiry scan type");
+  }
+  return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_EIR,241,params);  
 }
 
 int HCIClass::startInquiry()
