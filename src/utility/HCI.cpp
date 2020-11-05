@@ -798,7 +798,12 @@ void HCIClass::handleAclDataPkt(uint8_t /*plen*/, uint8_t pdata[])
     }
   } else if (aclHdr->cid == SIGNALING_CID) {
     L2CAPSignaling.handleData(aclHdr->handle & 0x0fff, aclHdr->len, &_recvBuffer[1 + sizeof(HCIACLHdr)]);
-  } else {
+  } else if (aclHdr->cid == BTCLASSIC_SIGNALING_CID)
+  {
+    // To do here:
+    // call L2CAPSignalling.handleData
+  }
+  else {
     struct __attribute__ ((packed)) {
       uint8_t op;
       uint8_t id;

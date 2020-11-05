@@ -22,7 +22,8 @@
 
 #include <Arduino.h>
 
-#define SIGNALING_CID 0x0005
+#define SIGNALING_CID 0x0005 // Bluetooth low energy L2CAP channel ID
+#define BTCLASSIC_SIGNALING_CID 0x0001 // Bluetooth classic (BD/EDR) l2CAP channel ID
 
 class L2CAPSignalingClass {
 public:

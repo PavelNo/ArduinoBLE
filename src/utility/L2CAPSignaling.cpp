@@ -24,6 +24,9 @@
 #define CONNECTION_PARAMETER_UPDATE_REQUEST  0x12
 #define CONNECTION_PARAMETER_UPDATE_RESPONSE 0x13
 
+// 
+#defined
+
 L2CAPSignalingClass::L2CAPSignalingClass() :
   _minInterval(0),
   _maxInterval(0)
@@ -96,6 +99,8 @@ void L2CAPSignalingClass::handleData(uint16_t connectionHandle, uint8_t dlen, ui
   } else if (code == CONNECTION_PARAMETER_UPDATE_RESPONSE) {
     connectionParameterUpdateResponse(connectionHandle, identifier, length, data);
   }
+  // to do here
+  // need to add else if for Bluetooth classic L2CAP 
 }
 
 void L2CAPSignalingClass::removeConnection(uint8_t /*handle*/, uint16_t /*reason*/)
