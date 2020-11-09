@@ -45,6 +45,23 @@ private:
   void connectionParameterUpdateRequest(uint16_t handle, uint8_t identifier, uint8_t dlen, uint8_t data[]);
   void connectionParameterUpdateResponse(uint16_t handle, uint8_t identifier, uint8_t dlen, uint8_t data[]);
 
+  /**
+   * L2CAP Information Response.
+   * @param handle       HCI Handle.
+   * @param rxid         Identifier.
+   * @param infoType    Infotype.
+   */
+  void informationResponse(uint16_t handle, uint8_t identifier, uint16_t infoType);
+
+  /**
+   * L2CAP connection request reply.
+   * @param handle       HCI Handle.
+   * @param identifier   Identifier.
+   * @param dlen         length of the data payload provided
+   * @param data          array containing the request payload
+   */
+  void connectionRequestReply(uint16_t handle, uint8_t identifier, uint8_t dlen, uint8_t data[]);
+
 private:
   uint16_t _minInterval;
   uint16_t _maxInterval;

@@ -21,11 +21,24 @@
 
 #include "L2CAPSignaling.h"
 
+// BT Classic L2CAP Signalling Commands
+#define L2CAP_CMD_COMMAND_REJECT        0x01
+#define L2CAP_CMD_CONNECTION_REQUEST    0x02
+#define L2CAP_CMD_CONNECTION_RESPONSE   0x03
+#define L2CAP_CMD_CONFIG_REQUEST        0x04
+#define L2CAP_CMD_CONFIG_RESPONSE       0x05
+#define L2CAP_CMD_DISCONNECT_REQUEST    0x06
+#define L2CAP_CMD_DISCONNECT_RESPONSE   0x07
+#define L2CAP_CMD_INFORMATION_REQUEST   0x0A
+#define L2CAP_CMD_INFORMATION_RESPONSE  0x0B
+
+/* Bluetooth L2CAP PSM - see http://www.bluetooth.org/Technical/AssignedNumbers/logical_link.htm */
+#define SDP_PSM         0x01 // Service Discovery Protocol PSM Value
+#define RFCOMM_PSM      0x03 // RFCOMM PSM Value
+
+// LE L2CAP Signalling Commands
 #define CONNECTION_PARAMETER_UPDATE_REQUEST  0x12
 #define CONNECTION_PARAMETER_UPDATE_RESPONSE 0x13
-
-// 
-#defined
 
 L2CAPSignalingClass::L2CAPSignalingClass() :
   _minInterval(0),
@@ -98,9 +111,82 @@ void L2CAPSignalingClass::handleData(uint16_t connectionHandle, uint8_t dlen, ui
     connectionParameterUpdateRequest(connectionHandle, identifier, length, data);
   } else if (code == CONNECTION_PARAMETER_UPDATE_RESPONSE) {
     connectionParameterUpdateResponse(connectionHandle, identifier, length, data);
+  } else if (code == L2CAP_CMD_INFORMATION_REQUEST) {
+    uint16_t infoType = (uint16_t)data[0] + ((uint16_t)data[1])<<8;
+    informationResponse(connectionHandle, identifier, infoType);
+  } else if (code == L2CAP_CMD_CONNECTION_REQUEST) {
+    connectionRequestReply(connectionHandle, identifier, length, data);
   }
-  // to do here
-  // need to add else if for Bluetooth classic L2CAP 
+   
+}
+
+void L2CAPSignalingClass::informationResponse(uint16_t handle, uint8_t identifier, uint16_t infoType)
+{
+  uint16_t replyLen;
+  struct __attribute__ ((packed)) L2CAPInfoResponse {
+    uint8_t code;
+    uint8_t identifier;
+    uint16_t length;
+    uint16_t infoType;
+    uint16_t result;
+    uint8_t infoArray[8];
+  } response;
+  response.code = L2CAP_CMD_INFORMATION_RESPONSE;
+  response.identifier = identifier;
+  response.length = 8;
+  response.infoType = infoType;
+  response.result = 0x0; // Success
+  memset(response.infoArray,0,8);
+  
+  if(infoType == 0x0002) // Connectionless MTU
+  {
+    replyLen = sizeof(response) - 8;
+    response.result = 0x01; // Not supported
+  } else if(infoType == 0x0002) // Extended Features Infor
+  {
+    replyLen = sizeof(response) - 4;
+    response.infoArray[0] = 0x80; // Indicating support for fixed channels       
+  }
+  else if(infoType == 0x0003) // Supported Fixed Channels
+  {
+    response.length = 12;
+    response.infoArray[0] = 2; // Indicates only L2CAP signalling channel is supportes
+    replyLen = sizeof(response);
+  }
+  
+  HCI.sendAclPkt(handle, BTCLASSIC_SIGNALING_CID, replyLen, &response);
+}
+
+void L2CAPSignalingClass::connectionRequestReply(uint16_t handle, uint8_t identifier, uint8_t dlen, uint8_t data[])
+{
+  struct __attribute__ ((packed)) L2CAPConnRequest {
+    uint16_t PSM;
+    uint16_t sourceCID;
+  } *request = (L2CAPConnRequest*)data;
+
+  if(request->PSM == SDP_PSM) // Service discovery protocol
+  {
+
+  }
+  uint16_t replyLen;
+  struct __attribute__ ((packed)) L2CAPConnRequestReply {
+    uint8_t code;
+    uint8_t identifier;
+    uint16_t length;
+    uint16_t destCID;
+    uint16_t srcCID;
+    uint16_t result;
+    uint16_t status;
+  } response;
+  response.code = L2CAP_CMD_CONNECTION_RESPONSE;
+  response.identifier = identifier;
+  response.length = 8;
+  response.destCID = 0x0050;
+  response.srcCID = request->sourceCID;
+  response.result = 0x0000; // Success
+  response.status = 0;
+  
+  HCI.sendAclPkt(handle, BTCLASSIC_SIGNALING_CID, sizeof(response), &response);
 }
 
 void L2CAPSignalingClass::removeConnection(uint8_t /*handle*/, uint16_t /*reason*/)

@@ -63,7 +63,12 @@ public:
   // Page scan related commands
   int writePageScanActivity(uint16_t pageScanInterval,uint16_t pageScanWindow);
 
-  
+  // Connection setup related commands
+    // Accept connection to device with address given in bdAddr
+  int writeAcceptConnectionRequest(uint8_t bdAddr[6]);
+  // Respond to PIN request
+  int writeReplyToPINRequest(uint8_t bdAddr[6], uint8_t pinCode[4]);
+
   
 
   int readLeBufferSize(uint16_t& pktLen, uint8_t& maxPkt);
@@ -120,6 +125,18 @@ private:
   uint8_t _pendingPkt;
 
   uint8_t _aclPktBuffer[255];
+
+  // for handling BT Classic connection
+  uint16_t _lastConnectionHandle;
+  uint8_t _lastBDADDR[6];
+  uint8_t _lastClassOfDevice[3];
+  uint8_t _lastLinkKey[16];
+  uint8_t _lastLinkType;
+  uint8_t _lastLinkEncryptionEnabled;
+  uint8_t _lastL2CAPSignallingCommandCode;
+  uint8_t _lastL2CAPSignallingCommandIdentifier;
+  uint16_t _lastL2CAPChannelID;
+  
 };
 
 extern HCIClass HCI;

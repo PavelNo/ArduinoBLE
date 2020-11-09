@@ -4,8 +4,22 @@
 			"path": "."
 		},
 		{
-			"path": "..\\..\\WICED-Studio-6.6\\43xxx_Wi-Fi\\libraries\\drivers\\bluetooth"
+			"path": "..\\USB_Host_Shield_2.0"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"C_Cpp.default.includePath": [
+			"..\\ArduinoBLE\\src\\**",
+			"C:\\Users\\pnova\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\mbed\\1.3.0\\cores\\arduino\\**",
+			"C:\\Users\\pnova\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\mbed\\1.3.0\\variants\\**"
+		],
+		"C_Cpp.default.defines": [],
+		"files.associations": {
+			"*.css": "sciter-css",
+			"*.html": "sciter-html",
+			"*.htm": "sciter-html",
+			"xstring": "cpp",
+			"system_error": "cpp"
+		}
+	}
 }

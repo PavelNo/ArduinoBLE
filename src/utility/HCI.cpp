@@ -30,14 +30,31 @@
 
 
 // HCI Event codes
-#define EVT_CONN_REQUEST    0x04
-#define EVT_DISCONN_COMPLETE 0x05
-#define EVT_CMD_COMPLETE     0xe
-#define EVT_CMD_STATUS       0x0f
-#define EVT_NUM_COMP_PKTS    0x13
-#define EVT_PIN_CODE_REQ      0x16
-#define EVT_LE_META_EVENT    0x3e
+#define EV_INQUIRY_COMPLETE                             0x01
+#define EV_INQUIRY_RESULT                               0x02
+#define EV_CONNECT_COMPLETE                             0x03
+#define EVT_CONN_REQUEST                                0x04
+#define EVT_DISCONN_COMPLETE                            0x05
+#define EV_AUTHENTICATION_COMPLETE                      0x06
+#define EV_REMOTE_NAME_COMPLETE                         0x07
+#define EV_ENCRYPTION_CHANGE                            0x08
+#define EV_CHANGE_CONNECTION_LINK                       0x09
+#define EV_READ_REMOTE_VERSION_INFORMATION_COMPLETE     0x0C
+#define EV_QOS_SETUP_COMPLETE                           0x0D
+#define EVT_CMD_COMPLETE                                0x0E
+#define EVT_CMD_STATUS                                  0x0F
+#define EV_ROLE_CHANGED                                 0x12
+#define EVT_NUM_COMP_PKTS                               0x13
+#define EVT_PIN_CODE_REQ                                0x16
+#define EV_LINK_KEY_REQUEST                             0x17
+#define EV_LINK_KEY_NOTIFICATION                        0x18
+#define EV_DATA_BUFFER_OVERFLOW                         0x1A
+#define EV_MAX_SLOTS_CHANGE                             0x1B
+#define EV_LOOPBACK_COMMAND                             0x19
+#define EV_PAGE_SCAN_REP_MODE                           0x20
 
+
+#define EVT_LE_META_EVENT    0x3e
 #define EVT_LE_CONN_COMPLETE      0x01
 #define EVT_LE_ADVERTISING_REPORT 0x02
 
@@ -414,6 +431,26 @@ int HCIClass::writeIAC(uint32_t IAC)
       _debug->println("Writing inquiry access code");
   }
   return sendCommand(OGF_HOST_CTL<<10 | OCF_WRITE_ICA,4,paramsArray);  
+}
+
+int HCIClass::writeAcceptConnectionRequest(uint8_t bdAddr[6])
+{
+    uint8_t params[7];
+    memcpy(params,bdAddr,6); // BD ADDR of device from which the connection is to be accepted
+    params[6] = 0x01; // Remain as slave for this connection
+    int result = sendCommand(OGF_LINK_CTL<<10 | OCF_ACCEPT_CONN_REQ,7,params);
+    return result;
+}
+
+int HCIClass::writeReplyToPINRequest(uint8_t bdAddr[6], uint8_t pinCode[4])
+{
+  // Reply to PIN code request
+    uint8_t pinREparams[23];
+    memset(pinREparams,'0',23);
+    memcpy(pinREparams,bdAddr,6); // BD ADDR of device from which the PIN request came
+    pinREparams[6] = 0x04; // 4 digit PIN (0000)
+    memcpy(&pinREparams[7],pinCode,4);
+    int result = sendCommand(OGF_LINK_CTL<<10 | OCF_PIN_REQ_REPLY,23,pinREparams);
 }
 
 int HCIClass::readIAC()
@@ -802,6 +839,7 @@ void HCIClass::handleAclDataPkt(uint8_t /*plen*/, uint8_t pdata[])
   {
     // To do here:
     // call L2CAPSignalling.handleData
+    L2CAPSignaling.handleData(aclHdr->handle & 0x0fff, aclHdr->len, &_recvBuffer[1 + sizeof(HCIACLHdr)]);
   }
   else {
     struct __attribute__ ((packed)) {
@@ -996,6 +1034,46 @@ void HCIClass::handleEventPkt(uint8_t /*plen*/, uint8_t pdata[])
     pinREparams[6] = 0x04; // 4 digit PIN (0000)
     //pinREparams[7] = 0x00;pinREparams[8] = 0x00;pinREparams[9] = 0x00;pinREparams[10] = 0x00;
     int result = sendCommand(OGF_LINK_CTL<<10 | OCF_PIN_REQ_REPLY,23,pinREparams);
+
+  } else if(eventHdr->evt ==EV_LINK_KEY_NOTIFICATION)
+  {
+    struct __attribute__ ((packed)) LinkKeyNotification {
+      uint8_t bdAddr[6];
+      uint8_t linkKey[16];
+      uint8_t keyType;
+    } *linkKeyNoteHeader = (LinkKeyNotification*)&pdata[sizeof(HCIEventHdr)]; 
+    if(_debug)
+    {
+      _debug->println("Link Key Notification Received");
+    }
+    // Store link key 
+    memcpy(_lastLinkKey,linkKeyNoteHeader->linkKey,16);  
+  } else if(eventHdr->evt == EV_CONNECT_COMPLETE)
+  {
+    struct __attribute__ ((packed)) ConnCompletedNote {
+      uint8_t status;
+      uint16_t connHandle;
+      uint8_t bdAddr[6];
+      uint8_t linkType;
+      uint8_t encryptEnabled;
+    } *connCompleteNoteHeader = (ConnCompletedNote*)&pdata[sizeof(HCIEventHdr)]; 
+    if(_debug){ 
+      if(connCompleteNoteHeader->status == 0) {
+        _debug->println("Connection completed");
+      }
+      else
+      {
+        _debug->println("Connection failed to complete");
+      } 
+    }
+    if(connCompleteNoteHeader->status == 0){
+      // Save connection params
+      _lastConnectionHandle = connCompleteNoteHeader->connHandle;
+      memcpy(_lastBDADDR,connCompleteNoteHeader->bdAddr,6);
+      _lastLinkType = connCompleteNoteHeader->linkType;
+      _lastLinkEncryptionEnabled = connCompleteNoteHeader->encryptEnabled;
+    }
+
 
   }
   
